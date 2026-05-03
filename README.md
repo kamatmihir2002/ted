@@ -1,4 +1,5 @@
 
+![ted.](./ted.png)
 # *ted.*
 
 the **t**iny **ed**itor.
