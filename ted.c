@@ -369,7 +369,9 @@ void line_cursor_move_left(int jump_mod) {
         if (!jump_mod)
             gapbuf_move_cursor(curr_cursor_line->ldata, MOVE_LEFT);
         else
-            gapbuf_jump_cursor(curr_cursor_line->ldata, toklen(curr_cursor_line->ldata->pre_gap - 1, MOVE_LEFT), MOVE_LEFT);
+            gapbuf_jump_cursor(curr_cursor_line->ldata, 
+                toklen(curr_cursor_line->ldata->pre_gap - 1, MOVE_LEFT), 
+                MOVE_LEFT);
     }
 }
 
@@ -380,7 +382,9 @@ void line_cursor_move_right(int jump_mod) {
         if (!jump_mod)
             gapbuf_move_cursor(curr_cursor_line->ldata, MOVE_RIGHT);
         else
-            gapbuf_jump_cursor(curr_cursor_line->ldata, toklen(curr_cursor_line->ldata->post_gap, MOVE_RIGHT), MOVE_RIGHT);
+            gapbuf_jump_cursor(curr_cursor_line->ldata, 
+                toklen(curr_cursor_line->ldata->post_gap, MOVE_RIGHT), 
+                MOVE_RIGHT);
     }
 }
 
