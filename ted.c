@@ -263,9 +263,13 @@ typedef struct line_t {
     struct line_t* next;
 } line_t;
 
-line_t* current_line;
+line_t* view_line_start;
 
 line_t* curr_cursor_line;
+
+int curr_cursor_line_num;
+
+int cursor_view_lines = 20;
 
 void print_ll(line_t* ll) {
     fprintf(stderr, "E\n");
@@ -317,13 +321,27 @@ line_t* line_new_and_move(line_t* prev_line) {
     prev_line->curr = 0;
     prev_line->next->curr = 1;
     curr_cursor_line = prev_line->next;
-
+    
+    if (curr_cursor_line_num < cursor_view_lines)
+        curr_cursor_line_num++;
+    else {
+        if (view_line_start->next)
+            view_line_start = view_line_start->next;
+    }
+    
     return prev_line->next;
 }
 
 
 void line_cursor_move_up() {
     if (curr_cursor_line->prev){
+        if (curr_cursor_line_num > 0) {
+            curr_cursor_line_num--;
+        }
+        else {
+            if (view_line_start->prev)
+                view_line_start = view_line_start->prev;
+        }
         curr_cursor_line->curr = 0;
         curr_cursor_line = curr_cursor_line->prev;
         curr_cursor_line->curr = 1;
@@ -332,6 +350,12 @@ void line_cursor_move_up() {
 
 void line_cursor_move_down() {
     if (curr_cursor_line->next) {
+        if (curr_cursor_line_num < cursor_view_lines)
+            curr_cursor_line_num++;
+        else {
+            if (view_line_start->next)
+                view_line_start = view_line_start->next;
+        }
         curr_cursor_line->curr = 0;
         curr_cursor_line = curr_cursor_line->next;
         curr_cursor_line->curr = 1;
@@ -385,6 +409,13 @@ void line_del_and_merge() {
     free(l_to_delete->ldata);
     free(l_to_delete);
     
+    if (curr_cursor_line_num > 0)
+        curr_cursor_line_num--;
+    else {
+        if (view_line_start->prev)
+            view_line_start = view_line_start->prev;
+    }
+
     curr_cursor_line = before;
     curr_cursor_line->curr = 1;
 }
@@ -434,13 +465,15 @@ int line_delc() {
 void print_contents(WINDOW* win, line_t* line_head) {
 
     wmove(win, 0, 0);
-    while(line_head->next) {
-        gapbuf_printw(win, line_head->ldata, line_head->curr);
+    int i = 0;
+    line_t* vls = view_line_start;
+    while(vls->next && i < cursor_view_lines) {
+        gapbuf_printw(win, vls->ldata, vls->curr);
         wprintw(win, "\n");
-        line_head = line_head->next;
-
+        vls = vls->next;
+        i++;
     }
-    gapbuf_printw(win, line_head->ldata, line_head->curr);
+    gapbuf_printw(win, vls->ldata, vls->curr);
     wprintw(win, "\n");
     wclrtoeol(win);
 
@@ -529,7 +562,10 @@ int main(int argc, char** argv) {
     curs_set(0);
 
     line_t* lbuf = line_new_and_move(NULL);
+    view_line_start = lbuf;
+    curr_cursor_line_num = 0;
 
+    cursor_view_lines = getmaxy(stdscr);
     print_contents(stdscr, lbuf);
 
     define_key("\x0f", KEY_CTRL_O);
