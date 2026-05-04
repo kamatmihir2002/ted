@@ -202,7 +202,7 @@ void gapbuf_jump_cursor(gapbuf* gb, int len, char dir) {
     }
 }
 
-void gapbuf_printw(WINDOW* win, gapbuf_t* gb, char SHOWCURSOR) {
+void gapbuf_printw(WINDOW* win, gapbuf* gb, char SHOWCURSOR) {
     // gb->buf[gb->gapstart] = 0;
     *gb->pre_gap = 0;
     if (SHOWCURSOR)
@@ -213,7 +213,7 @@ void gapbuf_printw(WINDOW* win, gapbuf_t* gb, char SHOWCURSOR) {
     wclrtoeol(win);
 }
 
-void gapbuf_fprintf(gapbuf_t* gb, FILE* fp) {
+void gapbuf_fprintf(gapbuf* gb, FILE* fp) {
     *gb->pre_gap = 0;
     fprintf(fp, "%s%s", gb->buf + 1, gb->post_gap);
 }
@@ -556,6 +556,10 @@ void parse_args(int argc, char** argv) {
 #define KEY_CTRL_O 0xffff
 #define KEY_CTRL_X 0xfffe
 
+int event_not_key(int ch) {
+    return ch == KEY_RESIZE || ch == KEY_MOUSE;
+}
+
 int main(int argc, char** argv) {
     parse_args(argc, argv);
 
@@ -577,7 +581,8 @@ int main(int argc, char** argv) {
     char runloop = 1;
     while (runloop) {
         int c = getch();
-
+        if (event_not_key(c))
+            continue;
         switch(c) {
             case KEY_CTRL_X:
                 runloop = 0;
